@@ -2,6 +2,46 @@
 
 infix operator ???: NilCoalescingPrecedence
 
+/// Performs a empty-coalescing operation, returning the non-empty value of either a
+/// `Collection` or wrapped `Optional` instance or a default value.
+///
+/// A empty-coalescing operation unwraps the left-hand side
+/// `Collection` if it has a value and returns it if it is not empty, or
+/// it returns the right-hand side as a default. The result of this operation
+/// will have the non-optional type of the left-hand side's `Wrapped` type.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil` or empty. For example:
+///
+///     func getDefault() -> String {
+///         print("Calculating default...")
+///         return "New Item"
+///     }
+///
+///     let name = "AB"
+///
+///     let goodName = String(name.dropLast()) ??? getDefault()
+///     // goodName == "A"
+///
+///     let notSoGoodName = String(name.dropLast(2)) ??? getDefault()
+///     // Prints "Calculating default..."
+///     // notSoGoodName == "New Item"
+///
+/// In this example, `goodName` is assigned a value of `"A"` because
+/// `name.dropLast()` succeeds in returning a non-empty result. When
+/// `notSoGoodName` is initialized, `name.dropLast(2)` returns
+/// an empty `String`, and so the `getDefault()` method is called
+/// to supply a default value.
+///
+/// Because the result of this empty-coalescing operation
+/// is itself may be empty, you can chain default values by using `???`
+/// multiple times. The first value that isn't empty stops the chain and
+/// becomes the result of the whole expression.
+///
+/// - Parameters:
+///   - optional: An optional or potentially empty collection.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as the `Wrapped` type of `optional`.
 public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () throws -> C) rethrows -> C {
     if let value = optional,
        !value.isEmpty {
@@ -10,6 +50,43 @@ public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () thro
     return try defaultValue()
 }
 
+/// Performs a empty-coalescing operation, returning the non-empty value of either a
+/// `Collection` or wrapped `Optional` instance or a default `Optional` value.
+///
+/// A empty-coalescing operation unwraps the left-hand side
+/// `Collection` if it has a value and returns it if it is not empty, or
+/// it returns the right-hand side as a default. The result of this operation
+/// will be the same type as its arguments.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil` or empty. For example:
+///
+///     let name = "AB"
+///     let number: Int? = 10
+///
+///     let goodName = String(name.dropLast()) ??? number?.description
+///     print(goodName)
+///     // Prints "Optional("A")"
+///
+///     let notSoGoodName = String(name.dropLast(2)) ??? number?.description
+///     print(notSoGoodName)
+///     // Prints "Optional("10")"
+///
+/// In this example, `goodName` is assigned a value of `"A"` because
+/// `name.dropLast()` succeeds in returning a non-empty result. When
+/// `notSoGoodName` is initialized, `name.dropLast(2)` returns
+/// an empty `String`, and so `number?.description` is called
+/// to supply a default value.
+///
+/// Because the result of this empty-coalescing operation is
+/// itself an optional value that also may be empty, you can chain default values
+/// by using `???` multiple times. The first optional value that isn't `nil` or
+/// empty stops the chain and becomes the result of the whole expression.
+///
+/// - Parameters:
+///   - optional: An optional or potentially empty collection.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as the `Wrapped` type of `optional`.
 public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () throws -> C?) rethrows -> C? {
     if let value = optional,
        !value.isEmpty {
@@ -22,6 +99,52 @@ public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () thro
 
 infix operator ?=: NilCoalescingPrecedence
 
+/// Performs a nil-coalescing assignment operation, returning the wrapped value of a mutable
+/// `Optional` instance or assigning it to and returning a default value.
+///
+/// A nil-coalescing assignment operation unwraps the left-hand side if it has a value, or
+/// assigns it to and returns the right-hand side as a default. The result of this operation
+/// will have the non-optional type of the left-hand side's `Wrapped` type.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil`.
+/// Because `optional` is an `inout` property, it will trigger `didSet`
+/// even if its value is not changed. For example:
+///
+///     func getDefault() -> Int {
+///         print("Calculating default...")
+///         return 42
+///     }
+///
+///     var dict = ["One": 1] {
+///         didSet {
+///             print("dict updated")
+///         }
+///     }
+///
+///     let goodNumber = dict["One"] ?= getDefault()
+///     // Prints "dict updated"
+///     // goodNumber == 1
+///     print(dict["One"])
+///     // Prints "Optional(1)"
+///
+///     let notSoGoodNumber = dict["Forty-two"] ?= getDefault()
+///     // Prints "Calculating default..."
+///     // Prints "dict updated"
+///     // notSoGoodNumber == 42
+///     print(dict["Forty-two"])
+///     // Prints "Optional(42)"
+///
+/// In this example, `goodNumber` is assigned a value of `1` and `dict` is
+/// unchanged because `dict["One"]` succeeded in returning a non-`nil` result.
+/// When `notSoGoodNumber` is initialized, `dict["Forty-two"]` returns
+/// `nil`, and so the `getDefault()` method is called to supply a default
+/// value which is assigned to `dict["Forty-two"]` and returned.
+///
+/// - Parameters:
+///   - optional: An optional, mutable value.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as the `Wrapped` type of `optional`.
 public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T) rethrows -> T {
     if let value = optional {
         return value
@@ -31,6 +154,52 @@ public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T
     return newValue
 }
 
+/// Performs a nil-coalescing assignment operation, returning the wrapped value of a mutable
+/// `Optional` instance or assigning it to and returning a default `Optional` value.
+///
+/// A nil-coalescing assignment operation unwraps the left-hand side if it has a value, or
+/// assigns it to and returns the right-hand side as a default. The result of this operation
+/// will be the same type as its arguments.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil`.
+/// Because `optional` is an `inout` property, it will trigger `didSet`
+/// even if its value is not changed. For example:
+///
+///     func getDefault() -> Int {
+///         print("Calculating default...")
+///         return 42
+///     }
+///
+///     var dict = ["One": 1] {
+///         didSet {
+///             print("dict updated")
+///         }
+///     }
+///
+///     let goodNumber = dict["One"] ?= getDefault()
+///     // Prints "dict updated"
+///     // goodNumber == 1
+///     print(dict["One"])
+///     // Prints "Optional(1)"
+///
+///     let notSoGoodNumber = dict["Forty-two"] ?= getDefault()
+///     // Prints "Calculating default..."
+///     // Prints "dict updated"
+///     // notSoGoodNumber == 42
+///     print(dict["Forty-two"])
+///     // Prints "Optional(42)"
+///
+/// In this example, `goodNumber` is assigned a value of `1` and `dict` is
+/// unchanged because `dict["One"]` succeeded in returning a non-`nil` result.
+/// When `notSoGoodNumber` is initialized, `dict["Forty-two"]` returns
+/// `nil`, and so the `getDefault()` method is called to supply a default
+/// value which is assigned to `dict["Forty-two"]` and returned.
+///
+/// - Parameters:
+///   - optional: An optional, mutable value.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as the `Wrapped` type of `optional`.
 public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T?) rethrows -> T? {
     if let value = optional {
         return value
