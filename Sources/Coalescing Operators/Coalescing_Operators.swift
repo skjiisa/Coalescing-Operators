@@ -242,3 +242,28 @@ public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure (
     return optional
 }
 
+public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () throws -> C) rethrows -> C {
+    if !value.isEmpty {
+        return value
+    }
+    let newValue = try defaultValue()
+    if !newValue.isEmpty {
+        value = newValue
+        return newValue
+    }
+    return value
+}
+
+public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () throws -> C?) rethrows -> C? {
+    if !value.isEmpty {
+        return value
+    }
+    if let newValue = try defaultValue(),
+       !newValue.isEmpty {
+        // Only write to `optional` if `defaultValue`
+        // itself also isn't nil or empty.
+        value = newValue
+        return newValue
+    }
+    return value
+}
