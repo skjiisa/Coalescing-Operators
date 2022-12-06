@@ -1,7 +1,7 @@
 import XCTest
-@testable import Coalescing_Operators
+@testable import CoalescingOperators
 
-final class Coalescing_OperatorsTests: XCTestCase {
+final class CoalescingOperatorsTests: XCTestCase {
     
     //MARK: - ??? optional, non-optional
     
