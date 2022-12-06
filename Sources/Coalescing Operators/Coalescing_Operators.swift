@@ -428,6 +428,8 @@ public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure (
        !value.isEmpty {
         return value
     }
+    // If `optional` is nil and `defaultValue` is an empty Collection,
+    // should this return nil or the empty Collection?
     if let newValue = try defaultValue(),
        !newValue.isEmpty {
         // Only write to `optional` if `defaultValue`
@@ -435,6 +437,8 @@ public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure (
         optional = newValue
         return newValue
     }
+    // I think it could make sense for this to return an empty
+    // C instead of nil, but I'm not sure how to do that.
     return optional
 }
 

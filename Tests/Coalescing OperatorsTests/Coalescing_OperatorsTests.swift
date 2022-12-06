@@ -154,7 +154,6 @@ final class Coalescing_OperatorsTests: XCTestCase {
             return UUID().uuidString
         }
         
-        
         var actual: String? = UUID().uuidString
         let final = actual ?= defaultValue()
         // actual should be unchanged
@@ -167,6 +166,181 @@ final class Coalescing_OperatorsTests: XCTestCase {
         let final = actual ?= nil
         XCTAssertNil(actual)
         XCTAssertNil(final)
+    }
+    
+    //MARK: - ??= optional, non-optional
+    
+    func testEmptyCoalescingAssignmentOptionalNonOptionalNilLeft() {
+        var actual: String?
+        let expected: String = UUID().uuidString
+        let final = actual ??= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalNonOptionalEmptyLeft() {
+        var actual: String? = ""
+        let expected: String = UUID().uuidString
+        let final = actual ??= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalNonOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        var actual: String? = UUID().uuidString
+        let final = actual ??= defaultValue()
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    //MARK: ??= optional, optional
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalNilLeft() {
+        var actual: String?
+        let expected: String? = UUID().uuidString
+        let final = actual ??= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalEmptyLeft() {
+        var actual: String? = ""
+        let expected: String? = UUID().uuidString
+        let final = actual ??= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String? {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        var actual: String? = UUID().uuidString
+        let final = actual ??= defaultValue()
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalNilLeftNilRight() {
+        var actual: String?
+        let final = actual ??= nil
+        // It could make sense to return an empty String,
+        // but I'm not sure how to do that generically.
+        XCTAssertEqual(actual, nil)
+        XCTAssertEqual(final, nil)
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalEmptyLeftNilRight() {
+        var actual: String? = ""
+        let final = actual ??= nil
+        XCTAssertEqual(actual, "")
+        XCTAssertEqual(final, "")
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalEmptyLeftEmptyRight() {
+        var actual: String? = ""
+        let final = actual ??= Optional("")
+        XCTAssertEqual(actual, "")
+        XCTAssertEqual(final, "")
+    }
+    
+    func testEmptyCoalescingAssignmentOptionalOptionalNilLeftEmptyRight() {
+        var actual: String?
+        let final = actual ??= Optional("")
+        // Should this functionality be changed to return an empty String?
+        XCTAssertEqual(actual, nil)
+        XCTAssertEqual(final, nil)
+    }
+    
+    //MARK: ??= non-optional, non-optional
+    
+    func testEmptyCoalescingAssignmentNonOptionalNonOptionalEmptyLeft() {
+        var actual: String = ""
+        let expected: String = UUID().uuidString
+        let final = actual ??= expected
+        
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentNonOptionalNonOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        var actual: String = UUID().uuidString
+        let final = actual ??= defaultValue()
+        
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    func testEmptyCoalescingAssignmentNonOptionalNonOptionalBothEmpty() {
+        var actual: String = ""
+        let expected: String = ""
+        let final = actual ??= expected
+        
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    //MARK: ??= non-optional, optional
+    
+    func testEmptyCoalescingAssignmentNonOptionalOptionalEmptyLeft() {
+        var actual: String = ""
+        let expected: String? = UUID().uuidString
+        let final = actual ??= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testEmptyCoalescingAssignmentNonOptionalOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String? {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        var actual: String = UUID().uuidString
+        let final = actual ??= defaultValue()
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    func testEmptyCoalescingAssignmentNonOptionalOptionalEmptyLeftNilRight() {
+        var actual: String = ""
+        let final = actual ??= nil
+        XCTAssertEqual(actual, "")
+        XCTAssertEqual(final, "")
+    }
+    
+    func testEmptyCoalescingAssignmentNonOptionalOptionalEmptyLeftEmptyRight() {
+        var actual: String = ""
+        let final = actual ??= Optional("")
+        XCTAssertEqual(actual, "")
+        XCTAssertEqual(final, "")
     }
     
 }
