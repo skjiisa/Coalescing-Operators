@@ -96,6 +96,101 @@ public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () thro
     return try defaultValue()
 }
 
+/// Performs an empty-coalescing operation, returning the non-empty value of either a
+/// `Collection` instance or a default value.
+///
+/// An empty-coalescing operation returns the left-hand side
+/// `Collection` if it is not empty, or
+/// it returns the right-hand side as a default. The result of this operation
+/// will be the same type as its arguments. It cannot
+/// guarantee that the the result is not empty if the default value is empty, however.
+///
+/// This operator uses short-circuit evaluation: `value` is checked first,
+/// and `defaultValue` is evaluated only if `value` is empty. For example:
+///
+///     func getDefault() -> String {
+///         print("Calculating default...")
+///         return "New Item"
+///     }
+///
+///     let name = "AB"
+///
+///     let goodName = String(name.dropLast()) ??? getDefault()
+///     // goodName == "A"
+///
+///     let notSoGoodName = String(name.dropLast(2)) ??? getDefault()
+///     // Prints "Calculating default..."
+///     // notSoGoodName == "New Item"
+///
+/// In this example, `goodName` is assigned a value of `"A"` because
+/// `name.dropLast()` succeeds in returning a non-empty result. When
+/// `notSoGoodName` is initialized, `name.dropLast(2)` returns
+/// an empty `String`, and so the `getDefault()` method is called
+/// to supply a default value.
+///
+/// Because the result of this empty-coalescing operation
+/// is itself may be empty, you can chain default values by using `???`
+/// multiple times. The first value that isn't empty stops the chain and
+/// becomes the result of the whole expression.
+///
+/// - Parameters:
+///   - value: A potentially empty `Collection`.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type of `value`.
+public func ??? <C: Collection>(value: C, defaultValue: @autoclosure () throws -> C) rethrows -> C {
+    if !value.isEmpty {
+        return value
+    }
+    return try defaultValue()
+}
+
+/// Performs an empty-coalescing operation, returning the non-empty value of a
+/// `Collection` instance or a wrapped default `Optional` value.
+///
+/// An empty-coalescing operation returns the left-hand side
+/// `Collection` if it is not empty, or
+/// it returns the unwrapped right-hand side as a default if it has a value. The result of this operation
+/// will be the same type as its left-hand side.
+///
+/// This operator uses short-circuit evaluation: `value` is checked first,
+/// and `defaultValue` is evaluated only if `value` is or empty. For example:
+///
+///     let name = "AB"
+///     let number: Int? = 10
+///
+///     let goodName = String(name.dropLast()) ??? number?.description
+///     print(goodName)
+///     // Prints "Optional("A")"
+///
+///     let notSoGoodName = String(name.dropLast(2)) ??? number?.description
+///     print(notSoGoodName)
+///     // Prints "Optional("10")"
+///
+/// In this example, `goodName` is assigned a value of `"A"` because
+/// `name.dropLast()` succeeds in returning a non-empty result. When
+/// `notSoGoodName` is initialized, `name.dropLast(2)` returns
+/// an empty `String`, and so `number?.description` is called
+/// to supply a default value.
+///
+/// Because the result of this empty-coalescing operation is
+/// itself an optional value that also may be empty, you can chain default values
+/// by using `???` multiple times. The first optional value that isn't `nil` or
+/// empty stops the chain and becomes the result of the whole expression.
+///
+/// - Parameters:
+///   - value: A potentially empty `Collection`.
+///   - defaultValue: A value to use as a default. `defaultValue` is an `Optional` of the
+///     type of `value`.
+public func ??? <C: Collection>(value: C, defaultValue: @autoclosure () throws -> C?) rethrows -> C {
+    if !value.isEmpty {
+        return value
+    }
+    if let newValue = try defaultValue() {
+        return newValue
+    }
+    return value
+}
+
 //MARK: ?=
 
 infix operator ?=: NilCoalescingPrecedence
