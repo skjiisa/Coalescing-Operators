@@ -18,9 +18,17 @@ final class Coalescing_OperatorsTests: XCTestCase {
     }
     
     func testEmptyCoalescingOptionalNonOptionalValidLeft() {
-        let expected: [Int] = [1, 2, 3]
-        let actual: [Int] = expected ??? [1, 2, 3, 4, 5]
+        var defaultCalled = false
+        func defaultValue() -> [Int] {
+            defaultCalled = true
+            return [1, 2, 3, 4, 5]
+        }
+        
+        let expected: [Int]? = [1, 2, 3]
+        let actual: [Int] = expected ??? defaultValue()
+        
         XCTAssertEqual(actual, expected)
+        XCTAssertFalse(defaultCalled)
     }
     
 }
