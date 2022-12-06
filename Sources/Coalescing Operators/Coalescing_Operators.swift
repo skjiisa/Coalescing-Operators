@@ -40,7 +40,7 @@ infix operator ???: NilCoalescingPrecedence
 /// becomes the result of the whole expression.
 ///
 /// - Parameters:
-///   - optional: An optional or potentially empty `Collection`.
+///   - optional: An `Optional` or potentially empty `Collection`.
 ///   - defaultValue: A value to use as a default. `defaultValue` is the same
 ///     type as the `Wrapped` type of `optional`.
 public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () throws -> C) rethrows -> C {
@@ -85,7 +85,7 @@ public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () thro
 /// empty stops the chain and becomes the result of the whole expression.
 ///
 /// - Parameters:
-///   - optional: An optional or potentially empty `Collection`.
+///   - optional: An `Optional` or potentially empty `Collection`.
 ///   - defaultValue: A value to use as a default. `defaultValue` is the same
 ///     type as the `Wrapped` type of `optional`.
 public func ??? <C: Collection>(optional: C?, defaultValue: @autoclosure () throws -> C?) rethrows -> C? {
@@ -143,7 +143,7 @@ infix operator ?=: NilCoalescingPrecedence
 /// value which is assigned to `dict["Forty-two"]` and returned.
 ///
 /// - Parameters:
-///   - optional: An optional, mutable value.
+///   - optional: An `Optional`, mutable value.
 ///   - defaultValue: A value to use as a default. `defaultValue` is the same
 ///     type as the `Wrapped` type of `optional`.
 public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T) rethrows -> T {
@@ -198,7 +198,7 @@ public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T
 /// value which is assigned to `dict["Forty-two"]` and returned.
 ///
 /// - Parameters:
-///   - optional: An optional, mutable value.
+///   - optional: An `Optional`, mutable value.
 ///   - defaultValue: A value to use as a default. `defaultValue` is the same
 ///     type as the `Wrapped` type of `optional`.
 public func ?= <T>(optional: inout T?, defaultValue: @autoclosure () throws -> T?) rethrows -> T? {
@@ -234,7 +234,7 @@ infix operator ??=: NilCoalescingPrecedence
 /// even if its value is not changed. For example:
 ///
 ///     func getDefault() -> String {
-///     print("Calculating default...")
+///         print("Calculating default...")
 ///         return "Apple"
 ///     }
 ///
@@ -250,7 +250,67 @@ infix operator ??=: NilCoalescingPrecedence
 ///     print(lastNames["John"])
 ///     // Prints "Optional("Smith")"
 ///
-///     let notSoGoodName = lastNames["Tim"] ??= getDefault2()
+///     let notSoGoodName = lastNames["Tim"] ??= getDefault()
+///     // Prints "Calculating default..."
+///     // Prints "lastNames updated"
+///     // notSoGoodName == "Apple"
+///     print(lastNames["Tim"])
+///     // Prints "Optional("Apple")"
+///
+/// In this example, `goodName` is assigned a value of `"Smith"` and
+/// `lastNames["John"]` is unchanged because `lastNames["John"]`
+/// succeeds in returning a non-empty result. When `notSoGoodName` is
+/// initialized, `lastNames["Tim"]` returns an empty `String`, and so the
+/// `getDefault()` method is called to supply a default value which is
+/// assigned to `lastNames["Tim"]` and returned.
+///
+/// - Parameters:
+///   - optional: An `Optional` or potentially empty, mutable `Collection`.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as the `Wrapped` type of `optional`.
+public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure () throws -> C) rethrows -> C {
+    if let value = optional,
+       !value.isEmpty {
+        return value
+    }
+    let newValue = try defaultValue()
+    optional = newValue
+    return newValue
+}
+
+/// Performs an empty-coalescing assignment operation, returning the non-empty value
+/// of a mutable property that is either an instance of or wrapped `Optional`
+/// of `Collection` or assigning it to and returning a default `Optional` value.
+///
+/// An empty-coalescing assignment operation unwraps the left-hand side
+/// `Collection` if it has a value and returns it if it is not empty, or
+/// assigns it to and returns the right-hand side as a default. The result of this operation
+/// will be the same as its arguments. It cannot
+/// guarantee that the the result is not empty if the default value is empty, however.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil` or empty.
+/// Because `optional` is an `inout` property, it will trigger `didSet`
+/// even if its value is not changed. For example:
+///
+///     func getDefault() -> String {
+///         print("Calculating default...")
+///         return "Apple"
+///     }
+///
+///     var lastNames = ["John": "Smith", "Tim": ""] {
+///         didSet {
+///             print("lastNames updated")
+///         }
+///     }
+///
+///     let goodName = lastNames["John"] ??= getDefault()
+///     // Prints "lastNames updated"
+///     // goodName == "Smith"
+///     print(lastNames["John"])
+///     // Prints "Optional("Smith")"
+///
+///     let notSoGoodName = lastNames["Tim"] ??= getDefault()
 ///     // Prints "Calculating default..."
 ///     // Prints "lastNames updated"
 ///     // notSoGoodName == "Apple"
@@ -267,17 +327,7 @@ infix operator ??=: NilCoalescingPrecedence
 /// - Parameters:
 ///   - optional: An optional or potentially empty, mutable `Collection`.
 ///   - defaultValue: A value to use as a default. `defaultValue` is the same
-///     type as the `Wrapped` type of `optional`.
-public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure () throws -> C) rethrows -> C {
-    if let value = optional,
-       !value.isEmpty {
-        return value
-    }
-    let newValue = try defaultValue()
-    optional = newValue
-    return newValue
-}
-
+///     type as `optional`.
 public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure () throws -> C?) rethrows -> C? {
     if let value = optional,
        !value.isEmpty {
@@ -293,6 +343,56 @@ public func ??= <C: Collection>(optional: inout C?, defaultValue: @autoclosure (
     return optional
 }
 
+/// Performs an empty-coalescing assignment operation, returning the non-empty value
+/// of a mutable property that is either an instance
+/// of `Collection` or assigning it to and returning a default value.
+///
+/// An empty-coalescing assignment operation returns the left-hand side
+/// `Collection` if it is not empty, or
+/// assigns it to and returns the right-hand side as a default. The result of this operation
+/// will be the same as its arguments. It cannot
+/// guarantee that the the result is not empty if the default value is empty, however.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil` or empty.
+/// Because `optional` is an `inout` property, it will trigger `didSet`
+/// even if its value is not changed. For example:
+///
+///     func getDefault() -> String {
+///         print("Calculating default...")
+///         return "Apple"
+///     }
+///
+///     var lastNames = ["John": "Smith", "Tim": ""] {
+///         didSet {
+///             print("lastNames updated")
+///         }
+///     }
+///
+///     let goodName = lastNames["John"] ??= getDefault()
+///     // Prints "lastNames updated"
+///     // goodName == "Smith"
+///     print(lastNames["John"])
+///     // Prints "Optional("Smith")"
+///
+///     let notSoGoodName = lastNames["Tim"] ??= getDefault()
+///     // Prints "Calculating default..."
+///     // Prints "lastNames updated"
+///     // notSoGoodName == "Apple"
+///     print(lastNames["Tim"])
+///     // Prints "Optional("Apple")"
+///
+/// In this example, `goodName` is assigned a value of `"Smith"` and
+/// `lastNames["John"]` is unchanged because `lastNames["John"]`
+/// succeeds in returning a non-empty result. When `notSoGoodName` is
+/// initialized, `lastNames["Tim"]` returns an empty `String`, and so the
+/// `getDefault()` method is called to supply a default value which is
+/// assigned to `lastNames["Tim"]` and returned.
+///
+/// - Parameters:
+///   - value: A potentially empty, mutable `Collection`.
+///   - defaultValue: A value to use as a default. `defaultValue` is the same
+///     type as `value`.
 public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () throws -> C) rethrows -> C {
     if !value.isEmpty {
         return value
@@ -305,7 +405,57 @@ public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () th
     return value
 }
 
-public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () throws -> C?) rethrows -> C? {
+/// Performs an empty-coalescing assignment operation, returning the non-empty value
+/// of a mutable property that is either an instance
+/// of `Collection` or assigning it to and returning a default unwrapped `Optional` value.
+///
+/// An empty-coalescing assignment operation returns the left-hand side
+/// `Collection` if it is not empty, or
+/// assigns it to and returns the right-hand side as a default. The result of this operation
+/// will be the same as its left-hand side. It cannot
+/// guarantee that the the result is not empty if the default value is `nil` or empty, however.
+///
+/// This operator uses short-circuit evaluation: `optional` is checked first,
+/// and `defaultValue` is evaluated only if `optional` is `nil` or empty.
+/// Because `optional` is an `inout` property, it will trigger `didSet`
+/// even if its value is not changed. For example:
+///
+///     func getDefault() -> String {
+///         print("Calculating default...")
+///         return "Apple"
+///     }
+///
+///     var lastNames = ["John": "Smith", "Tim": ""] {
+///         didSet {
+///             print("lastNames updated")
+///         }
+///     }
+///
+///     let goodName = lastNames["John"] ??= getDefault()
+///     // Prints "lastNames updated"
+///     // goodName == "Smith"
+///     print(lastNames["John"])
+///     // Prints "Optional("Smith")"
+///
+///     let notSoGoodName = lastNames["Tim"] ??= getDefault()
+///     // Prints "Calculating default..."
+///     // Prints "lastNames updated"
+///     // notSoGoodName == "Apple"
+///     print(lastNames["Tim"])
+///     // Prints "Optional("Apple")"
+///
+/// In this example, `goodName` is assigned a value of `"Smith"` and
+/// `lastNames["John"]` is unchanged because `lastNames["John"]`
+/// succeeds in returning a non-empty result. When `notSoGoodName` is
+/// initialized, `lastNames["Tim"]` returns an empty `String`, and so the
+/// `getDefault()` method is called to supply a default value which is
+/// assigned to `lastNames["Tim"]` and returned.
+///
+/// - Parameters:
+///   - value: An potentially empty, mutable `Collection`.
+///   - defaultValue: A value to use as a default. `defaultValue`
+///      is an `Optional` with the wrapped type of that of `value`.
+public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () throws -> C?) rethrows -> C {
     if !value.isEmpty {
         return value
     }
