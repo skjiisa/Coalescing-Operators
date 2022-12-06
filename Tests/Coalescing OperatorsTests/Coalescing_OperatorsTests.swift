@@ -2,10 +2,25 @@ import XCTest
 @testable import Coalescing_Operators
 
 final class Coalescing_OperatorsTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertTrue(true)
+    
+    //MARK: - ??? optional, non-optional
+    
+    func testEmptyCoalescingOptionalNonOptionalNilLeft() {
+        let expected: [Int] = [1, 2, 3]
+        let actual: [Int] = nil ??? expected
+        XCTAssertEqual(actual, expected)
     }
+    
+    func testEmptyCoalescingOptionalNonOptionalEmptyLeft() {
+        let expected: [Int] = [1, 2, 3]
+        let actual: [Int] = [] ??? expected
+        XCTAssertEqual(actual, expected)
+    }
+    
+    func testEmptyCoalescingOptionalNonOptionalValidLeft() {
+        let expected: [Int] = [1, 2, 3]
+        let actual: [Int] = expected ??? [1, 2, 3, 4, 5]
+        XCTAssertEqual(actual, expected)
+    }
+    
 }
