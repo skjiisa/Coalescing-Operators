@@ -31,7 +31,7 @@ final class Coalescing_OperatorsTests: XCTestCase {
         XCTAssertFalse(defaultCalled)
     }
     
-    //MARK: ??? optonal, optional
+    //MARK: ??? optional, optional
     
     func testEmptyCoalescingOptionalOptionalNilLeft() {
         let expected: [Int]? = [1, 2, 3]
@@ -107,6 +107,66 @@ final class Coalescing_OperatorsTests: XCTestCase {
         
         XCTAssertEqual(actual, expected)
         XCTAssertFalse(defaultCalled)
+    }
+    
+    //MARK: - ?= non-optional
+    
+    func testNilCoalescingAssignmentNonOptionalNilLeft() {
+        var actual: String?
+        let expected: String = UUID().uuidString
+        let final = actual ?= expected
+        
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testNilCoalescingAssignmentNonOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        var actual: String? = UUID().uuidString
+        let final = actual ?= defaultValue()
+        
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    //MARK: ?= optional
+    
+    func testNilCoalescingAssignmentOptionalNilLeft() {
+        var actual: String?
+        let expected: String? = UUID().uuidString
+        let final = actual ?= expected
+        // actual should be reassigned
+        XCTAssertEqual(actual, expected)
+        XCTAssertEqual(final, expected)
+    }
+    
+    func testNilCoalescingAssignmentOptionalValidLeft() {
+        var defaultCalled = false
+        func defaultValue() -> String? {
+            defaultCalled = true
+            return UUID().uuidString
+        }
+        
+        
+        var actual: String? = UUID().uuidString
+        let final = actual ?= defaultValue()
+        // actual should be unchanged
+        XCTAssertEqual(actual, final)
+        XCTAssertFalse(defaultCalled)
+    }
+    
+    func testNilCoalescingAssignmentOptionalBothNil() {
+        var actual: String?
+        let final = actual ?= nil
+        XCTAssertNil(actual)
+        XCTAssertNil(final)
     }
     
 }
