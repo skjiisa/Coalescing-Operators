@@ -1,6 +1,6 @@
 ///
 /// Coalescing Operators
-/// v0.2
+/// v1.0
 ///
 /// Created by Elaine Lyons
 /// https://github.com/skjiisa/Coalescing-Operators
