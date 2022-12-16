@@ -602,3 +602,33 @@ public func ??= <C: Collection>(value: inout C, defaultValue: @autoclosure () th
     }
     return value
 }
+
+//MARK: - Wrapped values
+
+extension Optional where Wrapped == Array {
+    var wrapped: Array {
+        get { self ?? [] }
+        set { self = newValue }
+    }
+}
+
+extension Optional where Wrapped == Dictionary {
+    var wrapped: Dictionary {
+        get { self ?? [:] }
+        set { self = newValue }
+    }
+}
+
+extension Optional where Wrapped == Set {
+    var wrapped: Set {
+        get { self ?? [] }
+        set { self = newValue }
+    }
+}
+
+extension Optional where Wrapped == String {
+    var wrapped: String {
+        get { self ?? "" }
+        set { self = newValue }
+    }
+}
